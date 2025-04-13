@@ -12,7 +12,9 @@ trait Course:
 
 object Course:
   // Factory method for creating Course instances
-  def apply(courseId: String, title: String, instructor: String, category: String): Course = ???
+  def apply(courseId: String, title: String, instructor: String, category: String): Course = CourseImpl(courseId, title, instructor, category)
+    private case class CourseImpl(courseId: String, title: String, instructor: String, category: String) extends Course
+
 /**
  * Manages courses and student enrollments on an online learning platform.
  */
@@ -85,9 +87,43 @@ trait OnlineCoursePlatform:
 end OnlineCoursePlatform
 
 object OnlineCoursePlatform:
-  // Factory method for creating an empty platform instance
-  def apply(): OnlineCoursePlatform = ??? // Fill Here!
+  private var courses: Sequence[Course] = Sequence.Nil()
+  private case class StudentInCourse(sName: String, courseId: String)
+  private var enrollments: Sequence[StudentInCourse] = Sequence.Nil()
 
+  // Factory method for creating an empty platform instance
+  def apply(): OnlineCoursePlatform = OnlineCoursePlatformImpl()
+    private class OnlineCoursePlatformImpl extends OnlineCoursePlatform:
+
+      def addCourse(course: Course): Unit =
+        courses = Sequence.Cons(course, courses)
+
+      def findCoursesByCategory(category: String): Sequence[Course] =
+        courses.filter(_.category == category)
+
+      def getCourse(courseId: String): Optional[Course] =
+        courses.find(_.courseId == courseId)
+
+      def removeCourse(course: Course): Unit =
+        courses = courses.filter(_ != course)
+
+      def isCourseAvailable(courseId: String): Boolean =
+        courses.map(_.courseId).contains(courseId)
+
+      def enrollStudent(studentId: String, courseId: String): Unit =
+        enrollments = Sequence.Cons(StudentInCourse(studentId, courseId), enrollments)
+
+      def unenrollStudent(studentId: String, courseId: String): Unit =
+        enrollments = enrollments.filter(_ != StudentInCourse(studentId, courseId))
+
+      def getStudentEnrollments(studentId: String): Sequence[Course] =
+        enrollments.filter(_.sName == studentId).map(s => getCourse(s.courseId)).flatMap{
+          case Optional.Just(course) => Sequence.Cons(course, Sequence.Nil())
+          case _ => Sequence.Nil()
+        }
+
+      def isStudentEnrolled(studentId: String, courseId: String): Boolean =
+        enrollments.contains(StudentInCourse(studentId, courseId))
 /**
  * Represents an online learning platform that offers courses and manages student enrollments.
  * Hints:
