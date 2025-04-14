@@ -55,6 +55,15 @@ object Sequences: // Essentially, generic linkedlists
       def size(): Int = sequence match
         case Cons(_, t) => 1 + t.size()
         case _ => 0
+        
+      def distinct(): Sequence[A] = sequence match
+        case Cons(h, t) if t.contains(h) => t.distinct()
+        case Cons(h, t) => Cons(h, t.distinct())
+        case _ => Nil()
+        
+      def append(e: A): Sequence[A] = sequence match
+        case Cons(h, t) => Cons(h, t.append(e))
+        case _ => Cons(e, Nil())
 
 @main def trySequences =
   import Sequences.* 
