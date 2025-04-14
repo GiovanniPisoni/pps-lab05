@@ -1,7 +1,8 @@
 package ex
 
 import util.Optionals.Optional
-import util.Sequences.* // Assuming Sequence and related methods are here
+import util.Sequences.*
+import util.Sequences.Sequence.Cons // Assuming Sequence and related methods are here
 
 // Represents a course offered on the platform
 trait Course:
@@ -124,6 +125,23 @@ object OnlineCoursePlatform:
 
       def isStudentEnrolled(studentId: String, courseId: String): Boolean =
         enrollments.contains(StudentInCourse(studentId, courseId))
+
+  object sameCategory:
+    def unapply(courses: Sequence[Course]): Option[(Sequence[Course], Sequence[Course])] =
+      def countOccurrences(category: String, seq: Sequence[Course]): Int =
+        seq.filter(_.category == category).size()
+  
+      val distinctCategories = courses.map(_.category).distinct()
+      distinctCategories match
+        case Cons(singleCategory, Sequence.Nil()) =>
+          Some((courses, Sequence.Nil()))
+        case _ =>
+          val mostCommonCategory = distinctCategories.map(cat => (cat, countOccurrences(cat, courses)))
+            .foldLeft(("", 0))((a, b) => if a._2 >= b._2 then a else b)._1
+  
+          val sameCategoryCourses = courses.filter(_.category == mostCommonCategory)
+          val differentCategoryCourses = courses.filter(_.category != mostCommonCategory)
+          Some((sameCategoryCourses, differentCategoryCourses))
 /**
  * Represents an online learning platform that offers courses and manages student enrollments.
  * Hints:
@@ -143,6 +161,8 @@ object OnlineCoursePlatform:
   val scalaCourse = Course("SCALA01", "Functional Programming in Scala", "Prof. Odersky", "Programming")
   val pythonCourse = Course("PYTHON01", "Introduction to Python", "Prof. van Rossum", "Programming")
   val designCourse = Course("DESIGN01", "UI/UX Design Fundamentals", "Prof. Norman", "Design")
+
+  val courses = Sequence(scalaCourse, pythonCourse, designCourse)
 
   println(s"Is SCALA01 available? ${platform.isCourseAvailable(scalaCourse.courseId)}") // false
   platform.addCourse(scalaCourse)
@@ -178,4 +198,11 @@ object OnlineCoursePlatform:
   platform.removeCourse(pythonCourse)
   println(s"Is PYTHON01 available? ${platform.isCourseAvailable(pythonCourse.courseId)}") // false
   println(s"Programming courses: ${platform.findCoursesByCategory("Programming")}") // Sequence(scalaCourse)
+
+  courses match
+    case OnlineCoursePlatform.sameCategory(same, different) =>
+      println(s"Corsi con la stessa categoria: $same")
+      println(s"Corsi con categorie diverse: $different")
+    case _ =>
+      println("Errore nel determinare le categorie dei corsi")
 
