@@ -22,6 +22,11 @@ object SchoolModel:
     def hasTeacher(name: String): Boolean
     def hasCourse(name: String): Boolean
 
+  object BasicSchool:
+    def emptySchool: School = new BasicSchoolModule()
+    def teacher(name: String): Teacher = name
+    def course(name: String): Course = name
+
   private class BasicSchoolModule(private var school: Sequence[TeacherAndCourse] = Nil()) extends SchoolModule:
     def courses(): Sequence[Course] =
       school.map(_ match
@@ -40,11 +45,6 @@ object SchoolModel:
       ).distinct()
     def hasTeacher(name: Teacher): Boolean = teachers().contains(name)
     def hasCourse(name: Teacher): Boolean = courses().contains(name)
-
-  object BasicSchool:
-    def emptySchool: School = new BasicSchoolModule()
-    def teacher(name: String): Teacher = name
-    def course(name: String): Course = name
 
 end SchoolModel
 
